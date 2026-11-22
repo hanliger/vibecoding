@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="332" viewBox="0 0 760 332" role="img" aria-labelledby="title desc">
+  <title id="title">고정한 테스트를 실행한 뒤의 세 가지 판단</title>
+  <desc id="desc">통과하면 기존 회귀 검사를 실행한다. 실패하면 기대값과 요구사항을 대조한다. 일치하면 실패 원인을 찾고, 충돌하면 작업을 멈추고 기준을 다시 합의한다.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto" markerUnits="userSpaceOnUse">
+      <path d="M0 0 L8 4 L0 8 Z" fill="#485b68"/>
+    </marker>
+  </defs>
+  <rect width="760" height="332" fill="white"/>
+  <g stroke="#485b68" stroke-width="2" stroke-linejoin="round" fill="none" marker-end="url(#arrow)">
+    <path d="M380 77 V101 H130 V227"/>
+    <path d="M380 101 H510 V122"/>
+    <path d="M510 187 V205 H380 V227"/>
+    <path d="M510 205 H630 V227"/>
+  </g>
+  <g font-family="Noto Sans CJK KR, Apple SD Gothic Neo, Malgun Gothic, sans-serif" text-anchor="middle" fill="#203341">
+    <rect x="191" y="12" width="378" height="65" rx="7" fill="#e6eef4" stroke="#4e6878" stroke-width="1.5"/>
+    <text x="380" y="40" font-size="21" font-weight="bold">고정한 테스트를 다시 실행</text>
+    <text x="380" y="63" font-size="16">수정 전과 같은 입력, 같은 기대값</text>
+
+    <text x="246" y="94" font-size="17" font-weight="bold">통과</text>
+    <text x="457" y="94" font-size="17" font-weight="bold">실패</text>
+    <rect x="359" y="122" width="302" height="65" rx="7" fill="#f3f5f6" stroke="#657782" stroke-width="1.5"/>
+    <text x="510" y="149" font-size="20" font-weight="bold">기대값과 요구를 대조</text>
+    <text x="510" y="172" font-size="16">이슈에 적힌 출력과 일치하는가?</text>
+
+    <g stroke-width="1.5">
+      <rect x="12" y="229" width="236" height="88" rx="7" fill="#edf5f1" stroke="#48705e"/>
+      <rect x="262" y="229" width="236" height="88" rx="7" fill="#edf2f6" stroke="#526e82"/>
+      <rect x="512" y="229" width="236" height="88" rx="7" fill="#f9f2e8" stroke="#866940"/>
+    </g>
+    <g font-size="17">
+      <text x="130" y="255">인수 조건 충족</text>
+      <text x="380" y="255">기대값이 요구와 일치</text>
+      <text x="630" y="255">기대값이 요구와 충돌</text>
+    </g>
+    <g font-size="21" font-weight="bold">
+      <text x="130" y="289">기존 회귀 검사 실행</text>
+      <text x="380" y="289">구현의 실패 원인 추적</text>
+      <text x="630" y="289">멈추고 기준 재검토</text>
+    </g>
+  </g>
+</svg>
