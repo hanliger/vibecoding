@@ -1,43 +1,64 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="760" height="332" viewBox="0 0 760 332" role="img" aria-labelledby="title desc">
-  <title id="title">Click 수정을 시험한 뒤 어떤 결과를 살필까?</title>
-  <desc id="desc">파일에 줄바꿈 한 바이트가 남으면 기존 테스트도 실행한다. 실패하면 기대값과 이슈를 대조한다. 둘이 같으면 코드에서 원인을 찾고, 다르면 사람에게 확인한다.</desc>
+<svg xmlns="http://www.w3.org/2000/svg" width="504" height="396" viewBox="0 0 504 396"
+     role="img" aria-labelledby="title desc" lang="ko">
+  <title id="title">사람과 에이전트가 수정 결과를 확인하는 순서</title>
+  <desc id="desc">사람이 완료 조건과 기대값을 정한다. 에이전트가 테스트를 써서 수정 전의 실패를 재현하면 사람이 기대값을 검토하고 테스트를 고정한다. 에이전트는 구현을 고쳐 같은 테스트를 실행한다. 통과하면 기존 테스트도 실행하고, 실패하면 원인을 찾아 다시 검사한다. 어느 단계에서든 요구와 기대값이 충돌하면 에이전트는 멈추고 사람에게 판단을 요청한다.</desc>
   <defs>
-    <marker id="arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto" markerUnits="userSpaceOnUse">
-      <path d="M0 0 L8 4 L0 8 Z" fill="#485b68"/>
+    <marker id="arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8"
+            markerHeight="8" orient="auto" markerUnits="userSpaceOnUse">
+      <path d="M0 0 L8 4 L0 8 Z" fill="#415666"/>
     </marker>
   </defs>
-  <rect width="760" height="332" fill="white"/>
-  <g stroke="#485b68" stroke-width="2" stroke-linejoin="round" fill="none" marker-end="url(#arrow)">
-    <path d="M380 77 V101 H130 V227"/>
-    <path d="M380 101 H510 V122"/>
-    <path d="M510 187 V205 H380 V227"/>
-    <path d="M510 205 H630 V227"/>
+  <rect width="504" height="396" fill="white"/>
+  <g fill="none" stroke="#415666" stroke-width="2" stroke-linejoin="round"
+     marker-end="url(#arrow)">
+    <path d="M252 52 V66"/>
+    <path d="M252 111 V125"/>
+    <path d="M252 170 V184"/>
+    <path d="M252 229 V239 H126 V251"/>
+    <path d="M252 239 H378 V251"/>
   </g>
-  <g font-family="Noto Sans CJK KR, Apple SD Gothic Neo, Malgun Gothic, sans-serif" text-anchor="middle" fill="#203341">
-    <rect x="191" y="12" width="378" height="65" rx="7" fill="#e6eef4" stroke="#4e6878" stroke-width="1.5"/>
-    <text x="380" y="40" font-size="21" font-weight="bold">수정한 코드로 다시 실행</text>
-    <text x="380" y="63" font-size="16">같은 빈 메시지, 같은 기대값</text>
 
-    <text x="246" y="94" font-size="17" font-weight="bold">통과</text>
-    <text x="457" y="94" font-size="17" font-weight="bold">실패</text>
-    <rect x="359" y="122" width="302" height="65" rx="7" fill="#f3f5f6" stroke="#657782" stroke-width="1.5"/>
-    <text x="510" y="149" font-size="20" font-weight="bold">기대값을 이슈와 대조</text>
-    <text x="510" y="172" font-size="16">이슈가 요구한 값은 줄바꿈 한 바이트</text>
+  <g font-family="Noto Sans CJK KR, Apple SD Gothic Neo, Malgun Gothic, sans-serif"
+     fill="#192d39">
+    <g fill="#f4f7f8" stroke="#637783" stroke-width="1.5">
+      <rect x="8" y="8" width="488" height="44" rx="5"/>
+      <rect x="8" y="67" width="488" height="44" rx="5"/>
+      <rect x="8" y="126" width="488" height="44" rx="5"/>
+      <rect x="8" y="185" width="488" height="44" rx="5"/>
+    </g>
+    <path d="M115 17 V43 M115 76 V102 M115 135 V161 M115 194 V220"
+          stroke="#94a4ac" stroke-width="1.5"/>
+    <g text-anchor="middle" font-size="19" font-weight="bold">
+      <text x="61" y="37">사람</text>
+      <text x="61" y="96">에이전트</text>
+      <text x="61" y="155">사람</text>
+      <text x="61" y="214">에이전트</text>
+    </g>
+    <g font-size="21">
+      <text x="129" y="37">완료 조건과 기대값을 정한다</text>
+      <text x="129" y="96">테스트를 써서 실패를 재현한다</text>
+      <text x="129" y="155">기대값을 검토하고 테스트를 고정한다</text>
+      <text x="129" y="214">구현을 고쳐 같은 테스트를 실행한다</text>
+    </g>
 
-    <g stroke-width="1.5">
-      <rect x="12" y="229" width="236" height="88" rx="7" fill="#edf5f1" stroke="#48705e"/>
-      <rect x="262" y="229" width="236" height="88" rx="7" fill="#edf2f6" stroke="#526e82"/>
-      <rect x="512" y="229" width="236" height="88" rx="7" fill="#f9f2e8" stroke="#866940"/>
+    <rect x="8" y="253" width="236" height="62" rx="5" fill="#edf5f1" stroke="#49695c" stroke-width="1.5"/>
+    <rect x="260" y="253" width="236" height="62" rx="5" fill="#f7f2ed" stroke="#806753" stroke-width="1.5"/>
+    <g text-anchor="middle">
+      <g font-size="20" font-weight="bold">
+        <text x="126" y="277">통과</text>
+        <text x="378" y="277">실패</text>
+      </g>
+      <g font-size="19">
+        <text x="126" y="302">기존 테스트도 실행한다</text>
+        <text x="378" y="302">원인을 찾아 다시 검사한다</text>
+      </g>
     </g>
-    <g font-size="17">
-      <text x="130" y="255">파일에 줄바꿈 한 바이트</text>
-      <text x="380" y="255">기대값이 이슈와 같다</text>
-      <text x="630" y="255">기대값이 이슈와 다르다</text>
-    </g>
-    <g font-size="21" font-weight="bold">
-      <text x="130" y="289">기존 테스트도 실행</text>
-      <text x="380" y="289">코드에서 원인 찾기</text>
-      <text x="630" y="289">멈추고 사람에게 확인</text>
+
+    <rect x="8" y="331" width="488" height="59" rx="5" fill="white" stroke="#566875"
+          stroke-width="1.5" stroke-dasharray="5 3"/>
+    <g text-anchor="middle">
+      <text x="252" y="354" font-size="20" font-weight="bold">요구와 기대값이 충돌하면</text>
+      <text x="252" y="379" font-size="19">에이전트는 멈추고 사람에게 판단을 요청한다</text>
     </g>
   </g>
 </svg>
