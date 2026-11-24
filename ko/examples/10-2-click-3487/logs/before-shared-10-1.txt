@@ -1,0 +1,38 @@
+FF........FF                                                             [100%]
+================================== FAILURES ===================================
+______________________ test_binary_echo[-True-\n-bytes] _______________________
+..\..\..\output\10-2-final-20261124\GitHub_업로드용\ko\examples\10-2-click-3487\shared-10-1\test_echo_contract.py:20: in test_binary_echo
+    click.echo(kind(payload), file=target, nl=nl)
+src\click\utils.py:333: in echo
+    file.write(out)  # type: ignore
+    ^^^^^^^^^^^^^^^
+E   TypeError: a bytes-like object is required, not 'str'
+____________________ test_binary_echo[-True-\n-bytearray] _____________________
+..\..\..\output\10-2-final-20261124\GitHub_업로드용\ko\examples\10-2-click-3487\shared-10-1\test_echo_contract.py:20: in test_binary_echo
+    click.echo(kind(payload), file=target, nl=nl)
+src\click\utils.py:333: in echo
+    file.write(out)  # type: ignore
+    ^^^^^^^^^^^^^^^
+E   TypeError: a bytes-like object is required, not 'str'
+_____________________________ test_file_argument ______________________________
+..\..\..\output\10-2-final-20261124\GitHub_업로드용\ko\examples\10-2-click-3487\shared-10-1\test_emit.py:13: in test_file_argument
+    assert result.exit_code == 0, repr(result.exception)
+E   AssertionError: TypeError("a bytes-like object is required, not 'str'")
+E   assert 1 == 0
+E    +  where 1 = <Result TypeError("a bytes-like object is required, not 'str'")>.exit_code
+____________________________ test_file_from_shell _____________________________
+..\..\..\output\10-2-final-20261124\GitHub_업로드용\ko\examples\10-2-click-3487\shared-10-1\test_emit.py:23: in test_file_from_shell
+    assert result.returncode == 0, result.stderr
+E   AssertionError: b'Traceback (most recent call last):\r
+E       File "C:\\Users\\USER\\.codex\\.chatgpt-projects\\g-p-6aacd110aa2081c2ab46da... file.write(out)  # type: ignore\r
+E         ~~~~~~~~~~^^^^^\r
+E     TypeError: a bytes-like object is required, not \'str\'\r
+E     '
+E   assert 1 == 0
+E    +  where 1 = CompletedProcess(args=['C:\\Users\\USER\\.codex\\.chatgpt-projects\\g-p-6aacd110aa2081c2ab46da02fcf23603\\verification...file.write(out)  # type: ignore\r\n    ~~~~~~~~~~^^^^^\r\nTypeError: a bytes-like object is required, not \'str\'\r\n').returncode
+=========================== short test summary info ===========================
+FAILED ..\..\..\output\10-2-final-20261124\GitHub_업로드용\ko\examples\10-2-click-3487\shared-10-1\test_echo_contract.py::test_binary_echo[-True-\n-bytes]
+FAILED ..\..\..\output\10-2-final-20261124\GitHub_업로드용\ko\examples\10-2-click-3487\shared-10-1\test_echo_contract.py::test_binary_echo[-True-\n-bytearray]
+FAILED ..\..\..\output\10-2-final-20261124\GitHub_업로드용\ko\examples\10-2-click-3487\shared-10-1\test_emit.py::test_file_argument
+FAILED ..\..\..\output\10-2-final-20261124\GitHub_업로드용\ko\examples\10-2-click-3487\shared-10-1\test_emit.py::test_file_from_shell
+4 failed, 8 passed in 0.21s
