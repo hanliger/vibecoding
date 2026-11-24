@@ -1,2 +1,109 @@
-# §10.4 벤치마크 점수와 현장 성능 사이 {.unnumbered}
+<!-- authoritative-lang: ko -->
 
+## §10.4 벤치마크 점수와 현장 성능 사이 {.unnumbered}
+
+코딩 에이전트의 결과를 비교하려면 문제와 성공 기준을 먼저 정해 두어야 한다. **고정 평가셋**은 여러 에이전트나 설정을 같은 과제와 채점 기준으로 평가하기 위한 자료이다. 결과를 비교할 때는 테스트뿐 아니라 사용한 도구와 실행 조건도 함께 기록한다.
+
+코드 수정의 성공 여부를 확인할 때는 두 질문을 구별한다. 보고된 오류가 해결되었는지를 보는 **확인 테스트**와, 원래 정상 동작하던 기능이 유지되는지를 보는 **회귀 테스트**이다.  과제 관리 앱이 오늘 마감인 미완료 과제를 ‘지연’으로 잘못 표시한다고 가정하자. 다음 표처럼 날짜와 완료 여부에 따른 기대 결과를 미리 정할 수 있다.
+
+| 검사할 조건 | 기대 결과 | 검사 목적 |
+| --- | --- | --- |
+| 미완료, 오늘 마감 | 오늘 마감 | 이번 오류의 수정 확인 |
+| 완료한 과제 | 완료 | 기존 기능 유지 |
+| 미완료, 지난 마감일 | 지연 | 기존 기능 유지 |
+| 미완료, 미래 마감일 | 예정 | 기존 기능 유지 |
+
+첫 검사는 이번 오류가 고쳐졌는지를 확인하고, 나머지는 수정의 부작용을 살핀다. 발견한 결함을 검사 사례로 남겨 두면 이후 변경에서도 같은 문제가 되풀이되는지 확인할 수 있다. 다만 검사 통과는 **정해 둔 조건에서의 동작**을 확인한 것이지 모든 결함이 없다는 증명은 아니다.
+
+### SWE-bench 의 평가 구조
+
+SWE-bench는 실제 GitHub 이슈를 바탕으로 에이전트의 코드 수정 능력을 평가한다. 원 논문의 평가 집합은 12개 Python 저장소의 과제 2,294개 로 구성된다. 에이전트는 이슈 설명과 수정 전 코드를 받아 변경 내용인 **패치(patch)**를 제출한다. 평가 프로그램은 같은 출발 코드에 패치와 테스트를 적용하여 해결 여부를 판정한다.
+
+판정에는 두 종류의 검사가 쓰인다. `FAIL_TO_PASS`는 원래 실패했던 검사가 수정 후 통과하는지, `PASS_TO_PASS`는 원래 통과하던 검사가 계속 통과하는지를 확인한다. 두 묶음을 모두 통과해야 과제 하나를 해결한 것으로 센다.
+
+앞 절의 가상 과제 관리 앱을 고치는 패치는 다음과 같이 표현할 수 있다. `-`는 삭제한 줄, `+`는 추가한 줄이다. `<=`는 오늘까지 ‘지연’으로 판단하지만 `<`로 고치면 오늘 마감인 과제는 다음 조건에서 별도로 처리된다.
+
+ def task_label(completed, due_date, today):
+     if completed:
+         return "완료"
+-    if due_date <= today:
++    if due_date < today:
+         return "지연"
+     if due_date == today:
+         return "오늘 마감"
+     return "예정"
+
+| 후보 패치 | 오류 확인 검사 | 기존 기능 검사 | 최종 판정 |
+| --- | --- | --- | --- |
+| A | 통과 | 모두 통과 | 해결 |
+| B | 통과 | ‘완료’ 검사 실패 | 미해결 |
+
+표는 설명용 가상 결과이다. 패치 B처럼 오류를 고쳐도 기존 기능을 깨뜨렸다면 미해결이다. **해결률은 통과한 테스트의 비율이 아니라 해결한 과제의 비율**이다. 사람이 문제 설명과 테스트를 검토해 선별한 SWE-bench Verified의 500개 과제도 이 원리에 따라 판정된다.
+
+### 공개 벤치마크 점수의 한계
+
+SWE-bench 같은 공개 평가에서 높은 점수를 얻어도 실제 제품의 모든 문제를 잘 해결한다는 뜻은 아니다. **점수는 정해진 과제와 테스트, 실행 조건 안에서 얻은 결과**이기 때문이다. 테스트가 요구사항의 일부를 놓치면 잘못된 수정이 통과할 수 있고, 반대로 과제에 없는 동작을 요구하면 타당한 수정이 실패할 수도 있다.
+
+공개된 과제에는 **자료 노출과 평가셋에 맞춘 조정**이라는 두 문제가 있다. 평가 문제나 해답이 학습 자료에 포함되었을 가능성은 새로운 문제를 해결한 능력과 구분해 살펴야 한다. 
+
+그러나 공개 과제라는 이유만으로 학습 자료 노출이 입증되는 것은 아니다. 또 이미 확인한 평가 점수를 보며 프롬프트와 도구 구성을 반복적으로 바꾸면, 그 평가셋에만 맞는 설정이 선택될 수 있다.
+
+실행할 때마다 결과가 달라지는 점도 고려해야 한다. Bjarnason 등의 연구에서는 SWE-bench Verified 전체 과제를 동일한 구성으로 10회 실행했을 때 최고와 최저 해결률이 구성에 따라 2.2–6.0%p 차이 났다. 이 수치는 해당 실험에서 관찰된 변동이지 모든 에이전트에 적용되는 오차 범위는 아니다.
+
+따라서 점수 차이를 해석하려면 평가 과제의 적절성, 실행 횟수, 모델뿐 아니라 도구와 재시도 예산까지 확인해야 한다.
+
+### 공개 벤치마크와 제품 평가의 연결
+
+공개 벤치마크는 여러 에이전트를 공통 과제에서 비교하기 위한 자료이다. 그러나 제품 도입을 판단하려면 **공개 평가, 제품의 기존 기능 검사, 설정을 고르는 데 사용하지 않은 새 과제 평가**를 함께 살펴야 한다. 세 관점은 평가의 목적을 구별한 것이므로 하나의 과제가 둘 이상의 역할을 할 수도 있다.
+
+제품 평가는 실제 요구사항과 과거 결함에서 출발한다. 앞서 살펴본 과제 관리 앱이라면 새로 발견한 날짜 표시 오류뿐 아니라 원래 정상 동작하던 완료·지연·예정 표시도 검사해야 한다. 이러한 검사는 개발 중 수정 결과를 확인하고 이후 변경으로 기능이 다시 깨지는지 살피는 회귀 테스트가 된다. 
+
+새로운 과제는 개발 과정에서 반복해서 본 평가 문제와 구별한다. SWE-rebench는 새 소프트웨어 수정 과제를 수집하고 이슈·PR의 생성일과 모델 출시일을 대조하여 자료 노출 가능성을 살피는 방법을 제시한다. 다만 최근에 수집했다는 사실만으로 노출되지 않았다고 보장할 수는 없다.
+
+평가 결과에는 과제와 판정 기준뿐 아니라 모델, 도구, 실행 조건과 반복 횟수를 함께 남긴다. 같은 시작 코드에서 에이전트 작업을 다시 수행하는 것과 이미 완성한 패치의 테스트만 재실행하는 것은 서로 다른 검증이다. 두 실행을 구별해야 공개 점수와 제품에서 확인한 결과를 올바르게 연결할 수 있다.
+
+### 평가셋 과적합을 줄이는 운영
+
+평가 결과를 보고 프롬프트와 도구 설정을 거듭 바꾸면, **특정 평가셋에서만 성능이 좋은 구성**을 선택할 수 있다. 모델을 재학습하지 않아도 평가 결과에 맞춰 설정을 고르는 과정에서 과적합이 생길 수 있다. 검증 자료의 반복적 재사용에서 발생하는 과적합은 Dwork 등의 연구에서도 논의된다.
+
+이를 줄이려면 **설정을 개선하는 개발용 과제와, 확정한 설정을 점검하는 최종 확인용 과제**를 구별한다. 개발용 과제에서는 실패를 분석해 프롬프트나 도구 사용 방식을 바꿀 수 있다. 최종 확인에서는 선택한 설정과 실행 예산을 유지하고 성공과 실패를 함께 기록한다. 
+
+SWE-rebench 역시 평가셋에 맞춘 실행 방식의 조정과 최고 결과만 선택해 보고하는 관행을 경계한다. 최종 확인 결과를 보고 다시 설정을 고쳤다면 그 과제도 개발 과정에 영향을 준 것이다. 다음 최종 확인에는 조정에 사용하지 않은 문제를 사용해야 한다. 
+
+기존 과제를 회귀 검사에 다시 사용하는 일 자체가 잘못은 아니다. **어떤 자료로 설정을 선택했고 어떤 자료로 결과를 확인했는지** 밝히는 것이 핵심이다.
+
+### 실제 이슈를 이용한 평가- Click #3487
+
+앞서 살펴본 평가 원리를 실제 코드 수정에 적용하기 위해, Python 라이브러리 Click의 이슈 #3487을 대상으로 간단한 검사를 수행하였다. 빈 바이트 데이터 `b""`를 출력하면서 줄바꿈을 요청하면 `b"\n"`이 기록되어야 하지만, 오류가 있던 코드에서는 `TypeError`가 발생하였다. 
+
+같은 출발 코드에서 코딩 에이전트 Codex가 수정한 결과를, 미리 정해 둔 세 가지 조건으로 평가하였다.
+
+| 검사 조건 | 기대 결과 | 수정 전 | 에이전트 수정 후 |
+| --- | --- | --- | --- |
+| `b"A"`, 줄바꿈 요청 | `b"A\n"` | 통과 | 통과 |
+| `b""`, 줄바꿈 없음 | `b""` | 통과 | 통과 |
+| `b""`, 줄바꿈 요청 | `b"\n"` | 자료형 오류 | 통과 |
+| **세 검사 전체** |  | **2/3** | **3/3** |
+
+에이전트의 수정안은 빈 바이트를 일반 문자열로 바꾸던 조건을 고치고 회귀 검사를 추가하였다. 수정 전후에 동일한 세 조건을 적용한 결과 오류 수정과 기존 동작 유지를 함께 확인할 수 있었다. 추가로 프로젝트의 기본 테스트 실행에서는 1,633개가 통과했고, 25개가 건너뛰어졌으며 예상 실패 1개가 기록되었다. 
+
+**기존의 정상 조건 두 개만 검사한 2/2와 문제 조건까지 포함해 검사한 2/3은 검사 범위의 차이**이며, 수정으로 성능이 떨어졌다는 뜻이 아니다. 반면 동일한 세 조건에서 얻은 2/3과 3/3은 수정 전후의 동작 차이를 보여 준다. 
+
+이 결과는 공개 이슈 한 건의 선택된 검사에 한정되므로, 에이전트의 일반적인 문제 해결률이나 SWE-bench 점수로 해석해서는 안 된다. 여기서는 **검사 범위와 판정 조건이 결과의 의미를 어떻게 결정하는지** 확인한 셈이다.
+
+### 참고 자료
+
+1. [ISTQB, Certified Tester Foundation Level Syllabus, v4.0.1](https://istqb.org/wp-content/uploads/2024/11/ISTQB_CTFL_Syllabus_v4.0.1.pdf) (2024; §1.3, §2.2.3).
+2. [Black, P. E., Guttman, B., & Okun, V., Guidelines on Minimum Standards for Developer Verification of Software](https://doi.org/10.6028/NIST.IR.8397).
+3. [Jimenez, C. E. 외, SWE-bench: Can Language Models Resolve Real-World GitHub Issues? (https://proceedings.iclr.cc/paper_files/paper/2024/file/edac78c3e300629acfe6cbe9ca88fb84-Paper-Conference.pdf).
+4. [SWE-bench, Official Dataset Card](https://huggingface.co/datasets/SWE-bench/SWE-bench/blob/main/README.md).
+5. [SWE-bench, Evaluation Guide](https://www.swebench.com/SWE-bench/guides/evaluation/).
+6. [SWE-bench, Evaluation Harness: grading.py](https://github.com/SWE-bench/SWE-bench/blob/main/swebench/harness/grading.py)
+7. [SWE-bench, SWE-bench Verified](https://www.swebench.com/verified.html)
+8. [OpenAI, Introducing SWE-bench Verified](https://openai.com/index/introducing-swe-bench-verified/) (2024-08-13).
+9. [OpenAI, Separating Signal from Noise in Coding Evaluations](https://openai.com/index/separating-signal-from-noise-coding-evaluations/) (2026-07-08).
+10. [Badertdinov 외, SWE-rebench: An Automated Pipeline for Task Collection and Decontaminated Evaluation of Software Engineering Agents](https://papers.neurips.cc/paper_files/paper/2025/file/21bec6ace947b1b58967b945c8ac0f10-Paper-Datasets_and_Benchmarks_Track.pdf).
+11. [Bjarnason, B. H., Silva, A., & Monperrus, M., On Randomness in Agentic Evals](https://arxiv.org/pdf/2602.07150v3).
+12. [Dwork 외, Generalization in Adaptive Data Analysis and Holdout Reuse](https://papers.nips.cc/paper/5993-generalization-in-adaptive-data-analysis-and-holdout-reuse.pdf).
+13. [Pallets, Echoing Empty Bytes or Bytearray Raises TypeError, Click Issue #3487](https://github.com/pallets/click/issues/3487) (2026-05-20).
+14. [Pallets, Handle Empty Bytes in Echo, Click Pull Request #3493](https://github.com/pallets/click/pull/3493) (2026-05-21).
