@@ -1,0 +1,40 @@
+Echoing empty bytes or bytearray raises TypeError
+2026-05-20T15:19:17Z
+Hopefully this isn't too frivolous but I think it's an easy fix: echoing an empty byte string will cause a crash if `nl=True`.
+
+To replicate:
+
+```shell
+$ python -c "import io; import click; click.echo(b'', io.BytesIO(), nl=True)"
+
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+  File "/myproject/click/src/click/utils.py", line 337, in echo
+    file.write(out)  # type: ignore
+    ^^^^^^^^^^^^^^^
+TypeError: a bytes-like object is required, not 'str'
+```
+
+Expected behaviour:
+
+We expect `b"\n"` to be written to the stream and for `TypeError` not to be thrown.
+
+Environment:
+
+- Python version: 3.11.2
+- Click version: 8.5.0.dev0
+
+Suggested fix:
+
+Change https://github.com/pallets/click/blob/dbf4d14c712750c31e15916b659925683150533b/src/click/utils.py#L297
+
+```diff
+    if nl:
+-      out = out or ""
++      out = "" if out is None else out 
+       if isinstance(out, str):
+            out += "\n"
+        else:
+            out += b"\n"
+```
+

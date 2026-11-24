@@ -1,0 +1,46 @@
+diff --git a/CHANGES.rst b/CHANGES.rst
+index eb32cd8..53028ae 100644
+--- a/CHANGES.rst
++++ b/CHANGES.rst
+@@ -10,6 +10,8 @@ Unreleased
+ -   Zsh completion scripts parse correctly on Windows. :issue:`3277`
+ -   Shell completion of `Choice` `Enum` values produces a valid completion
+     result. :issue:`3015`
++-   ``echo()`` of empty ``bytes`` or ``bytearray`` with ``nl=True`` writes a
++    newline instead of raising ``TypeError``.
+ 
+ Version 8.4.0
+ -------------
+diff --git a/src/click/utils.py b/src/click/utils.py
+index 223d6b8..4f1a9a0 100644
+--- a/src/click/utils.py
++++ b/src/click/utils.py
+@@ -294,7 +294,7 @@ def echo(
+         out = message
+ 
+     if nl:
+-        out = out or ""
++        out = "" if out is None else out
+         if isinstance(out, str):
+             out += "\n"
+         else:
+diff --git a/tests/test_utils.py b/tests/test_utils.py
+index a16493b..31ec6eb 100644
+--- a/tests/test_utils.py
++++ b/tests/test_utils.py
+@@ -92,6 +92,15 @@ def test_echo(runner):
+         assert outstreams[0].getvalue() == b"\x1b[31mx\x1b[39m"
+ 
+ 
++@pytest.mark.parametrize("empty", [b"", bytearray()])
++def test_echo_empty_bytes_nl(empty):
++    import io
++
++    f = io.BytesIO()
++    click.echo(empty, f, nl=True)
++    assert f.getvalue() == b"\n"
++
++
+ def test_echo_custom_file():
+     f = StringIO()
+     click.echo("hello", file=f)
