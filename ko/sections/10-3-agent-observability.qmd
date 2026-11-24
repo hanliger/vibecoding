@@ -84,23 +84,34 @@ Claude Code도 OpenTelemetry 형식으로 기록을 내보낼 수 있다. 사용
 
 실패한 기록에서는 다른 행동 없이 수정안 만들기와 테스트 실행만 되풀이하는 순서가 자주 보였다. 저자들은 비효율적인 패턴으로 세 가지를 들었다. 같은 행동을 되풀이하면서 그 결과를 다음 행동에 반영하지 않는 것, 테스트 없이 수정안만 연달아 만드는 것, 테스트로 제대로 확인하지 않고 작업을 끝내는 것이다. 기록을 읽을 때 이런 패턴부터 찾으면 판단이 틀어진 곳을 빨리 좁힐 수 있다.
 
-실패를 일으킨 단계를 자동으로 찾아 주는 방법은 아직 믿을 만하지 않다. Zhang 등은 LLM 에이전트 여러 개가 함께 일하는 시스템 127개에서 실패 기록을 모으고, 어느 에이전트가 어느 단계에서 실패를 일으켰는지 사람이 직접 표시해 Who&When이라는 데이터셋을 만들었다. 이 데이터셋에서 가장 좋은 자동 방법도 실패를 일으킨 에이전트는 53.5%, 실패한 단계는 14.2%만 맞혔다.[^c103-zhang] 판단이 틀어진 단계를 짚어 내려면 아직은 사람이 기록을 읽어야 한다.
-
 ::: {.callout-note title="Click #3487을 세 번 맡기고 기록을 읽어 보기"}
-10.1절에서 기대값을 따져 본 Click 이슈 #3487을 Claude Code에 세 번 맡겼다. `click.echo()`에 빈 바이트열 `b""`를 넘기면 오류가 나는 문제다. 세 번 모두 같은 이슈 본문을 주었고, 공식 수정이 들어가기 직전 커밋에서 시작했으며, 웹 검색은 막았다. 기록은 두 가지로 남겼다. 하나는 Claude Code가 내보내는 OpenTelemetry 추적 기록이고, 다른 하나는 대화와 도구 호출을 순서대로 적은 실행 기록이다.[^c103-click]
+파이썬 명령줄 도구 Click의 이슈 #3487을 Claude Code에 세 번 맡겼다. `click.echo()`로 빈 바이트열 `b""`를 쓰면서 줄바꿈을 요청하면 `b"\n"`이 남아야 하는데, 오류가 나는 문제다. 10.1절은 같은 이슈로 기대값을 적고 검사 12건을 만들었는데, 이 실습에서는 그 검사로 에이전트의 결과를 채점했다. 세 번 모두 같은 이슈 본문을 주고 공식 수정 직전 커밋에서 시작했으며, 웹 검색은 막았다. 기록은 Claude Code가 내보내는 OpenTelemetry 추적 기록과, 대화와 도구 호출을 순서대로 적은 실행 기록 두 가지로 남겼다.[^c103-click]
 
-결과만 보면 세 번은 거의 같았다. 세 번 모두 문제가 된 줄 `out = out or ""`를 고쳤고, 10.1절의 검사 12건과 공식 저장소가 추가한 테스트를 모두 통과했다. 고치기 전에 통과하던 기존 테스트도 그대로 통과했다. 테스트 파일에는 새 테스트를 더하기만 했고, 기존 테스트를 고친 실행은 없었다. 그런데 기록을 펼쳐 보니 결과에는 드러나지 않던 차이가 세 가지 보였다.
+결과 검사는 세 번 모두 통과했다. 10.1절의 검사 12건, 공식 저장소가 추가한 테스트, 기존 테스트를 모두 통과했고, 기존 테스트를 고친 실행도 없었다. 차이는 아래 표처럼 기록에서만 보였다.
 
-첫째, 세 번 모두 처음 두 행동은 코드 검색과 수정이었다. 이슈에 적힌 재현 명령을 고치기 전에 먼저 돌려 본 실행은 없었다. 한 실행은 고친 코드를 잠시 되돌려서, 새로 쓴 테스트가 예전 코드에서는 실패하는지 확인하려 했다. 그러나 그 명령은 허용해 둔 명령 밖이라 막혔다. 10.1절이 권한 ‘고치기 전 코드에서 테스트가 실패하는 것을 한 번 보기’는 세 번 모두 빠진 셈이다. 이 가운데 두 실행은 재현 명령이나 수정 전 실패를 확인하지 않았다는 사실을 최종 보고에서 스스로 밝혔다.
+| | 실행 1 | 실행 2 | 실행 3 |
+| --- | --- | --- | --- |
+| 도구 호출 | 11번 | 7번 | 16번 |
+| 고치기 전 재현 | 안 함(되돌리기 막힘) | 안 함 | 안 함(고친 뒤 실행) |
+| 추가 수정 | 함(계기 기록 없음) | 안 함 | 함(테스트 실패 후) |
+| 테스트 수정 도구 | 편집 도구 | 셸 스크립트 | 편집 도구 |
 
-둘째, 세 번 중 두 번은 이슈에 없던 수정을 하나 더 했다. 원래 코드의 `out += b"\n"`은 사용자가 넘긴 `bytearray`에 줄바꿈을 직접 덧붙이기 때문에, 함수를 부른 쪽의 값까지 바꿔 버린다. 두 실행은 이를 `out = out + b"\n"`으로 바꿔 원래 값을 건드리지 않게 했다. 공식 수정에는 없는 변경이다. 두 실행 모두 최종 보고에서 이유를 설명했지만, 그 이유를 기록에서 확인할 수 있었던 것은 한 번뿐이었다. 그 실행에서는 에이전트가 직접 쓴 테스트가 `assert b'\n' == b''`로 실패했다. 같은 `bytearray`를 두 번 넘겼는데 첫 호출이 그 값을 바꿔 놓았기 때문이다. 에이전트는 이 실패를 본 다음 코드를 고쳤다. 다른 실행은 첫 수정에 이미 이 변경을 넣었고, 그 전에 남은 기록은 해당 코드를 보여 준 검색 결과 하나뿐이었다. 모델의 생각을 담는 칸도 비어 있어서, 왜 그렇게 고쳤는지는 최종 보고의 설명 말고는 근거가 없었다.
-
-셋째, 테스트 파일을 고친 방법이 달랐다. 두 실행은 편집 도구로 고쳤고, 추적 기록의 해당 구간에 고친 파일의 경로가 남았다. 나머지 한 실행은 셸에서 짧은 파이썬 스크립트를 돌려 `CHANGES.rst`와 `tests/test_utils.py`를 한꺼번에 고쳤다. 이 구간에는 파일 경로가 따로 남지 않아서, 기록된 명령 전체를 읽고 그 안의 스크립트를 해석해야 어느 파일을 바꿨는지 알 수 있었다. 게다가 이번 실습은 내용 기록을 모두 켜고 돌렸다. 기본 설정이었다면 두 경우 모두 파일 이름이 남지 않고, 셸 구간에는 `python`을 실행했다는 사실만 남는다. 그러니 에이전트가 테스트의 기대값을 바꿨는지 기록에서 찾으려면, 먼저 기록을 어떤 설정으로 남겼는지 알아야 하고, 편집 도구 기록뿐 아니라 셸 명령까지 읽어야 한다.
+표의 ‘추가 수정’은 이슈에 없던 `bytearray` 관련 수정이다.
 :::
+
+이 결과에서 짚을 점과, 그로부터 얻는 실천 방법은 네 가지다.
+
+첫째, 통과했다는 보고만으로는 테스트가 버그를 잡는지 알 수 없었다. 세 실행 모두 재현 없이 코드부터 고쳤으므로, 에이전트가 쓴 테스트는 버그가 있는 코드에서 한 번도 실행되지 않았다. 이번 결과를 믿을 수 있었던 것은 에이전트가 고칠 수 없게 따로 둔 테스트로 채점했기 때문이다. 그래서 버그 수정을 맡길 때는 고치기 전에 실패를 재현하고 그 출력을 보고하라고 요청에 적고, 기록에서 그 실패 출력이 실제로 있는지 확인한다. 최종 판정에 쓸 테스트는 에이전트가 고칠 수 없는 곳에 따로 둔다.
+
+둘째, 같은 변경이라도 근거가 기록에 있는 경우와 설명에만 있는 경우가 있었다. 실행 1과 3은 똑같이, 사용자가 넘긴 `bytearray`를 함수가 직접 바꿔 버리는 문제까지 고쳤다. 실행 3의 기록에는 그 계기가 된 자기 테스트의 실패가 남아 있었지만, 실행 1에는 최종 보고의 설명뿐이었다. 그래서 검토할 때는 diff, 곧 고치기 전과 후의 파일을 줄 단위로 비교해 지워진 줄과 더해진 줄을 보여 주는 변경 내역에서 이슈 범위를 넘는 변경부터 골라내고, 기록에서 그 변경 직전에 에이전트가 무엇을 봤는지 찾는다. 계기를 찾지 못한 변경은 설명만 믿지 말고, 그 변경을 확인하는 테스트를 따로 요구한다.
+
+셋째, 기록 설정에 따라 보이는 것이 달랐다. 실행 2는 셸에서 스크립트로 테스트 파일을 고쳐서, 기록에 고친 파일의 경로가 남지 않았다. 기본 설정이었다면 `python`을 실행했다는 사실만 남았을 것이다. 그래서 테스트 파일이 바뀌었는지는 기록에 기대지 말고 diff로 매번 확인한다. 기록은 파일 경로와 실행한 명령까지 남도록 켜고, 편집 도구뿐 아니라 셸 명령도 읽을 대상에 넣는다.
+
+넷째, 기록 하나는 실행 하나만 보여 준다. 실행 2만 봤다면 `bytearray` 문제가 있는 줄도 몰랐을 것이다. 그래서 한 번의 기록만 보고 이 에이전트는 이렇게 일한다고 결론 내리지 않는다. 중요한 작업이라면 같은 과제를 두세 번 맡겨 행동 순서를 나란히 비교하고, 더 많은 실행을 모아 경향을 보는 일은 10.4절의 평가로 넘긴다.
 
 ## 기록으로 알 수 없는 것
 
-기록을 남겨도 모델 안에서 왜 그런 판단이 나왔는지는 알 수 없다. 기록으로 확인할 수 있는 것은 모델이 받은 입력, 본 결과, 한 행동까지다. 앞의 Turpin 등의 실험에서 보았듯, 모델이 내놓는 설명도 그 이유를 그대로 보여 준다고 믿기 어렵다. Click 실습에서도 같은 수정을 한 두 실행 가운데 하나는 기록에서 이유를 찾을 수 있었지만, 다른 하나는 최종 보고의 설명밖에 남지 않았다.
+기록만으로는 모델 안에서 왜 그런 판단이 나왔는지 알 수 없다. 기록으로 확인할 수 있는 것은 모델이 받은 입력, 본 결과, 한 행동까지다. 앞의 Turpin 등의 실험에서 보았듯, 모델이 내놓는 설명도 그 이유를 그대로 보여 준다고 믿기 어렵다. Click 실습의 실행 1처럼 기록에 계기가 남지 않은 변경은, 모델의 설명 말고는 이유를 알 길이 없다.
 
 기록에는 지켜야 할 정보도 섞인다. 프롬프트와 도구 결과에는 비밀번호, 개인 정보, 회사 코드가 들어갈 수 있다. OpenTelemetry 규칙과 Claude Code도 내용 기록을 기본으로 꺼 둔다. 무엇을 켤지는 그 기록이 원인을 찾는 데 얼마나 쓸모 있는지와, 새어 나가면 어떤 위험이 있는지를 함께 따져 정한다.
 
@@ -110,32 +121,30 @@ Claude Code도 OpenTelemetry 형식으로 기록을 내보낼 수 있다. 사용
 
 [^c103-c42]: [김현기, 4.2절 데이터 분석을 빠르고 재현 가능하게](https://oksure.github.io/vibecoding/sections/04-2-data-analysis-workflow.html), ‘재현을 설계에 넣은 분석 도구: data-to-paper’.
 
-[^c103-c51]: [이서원, 5.1절 작업에 맞는 모델 고르기](https://oksure.github.io/vibecoding/sections/05-1-model-selection.html), ‘코드 수정: 기준을 통과한 뒤의 차이’. 해당 실험은 2026-11-19, Claude Code 2.1.327에서 설정마다 과제별로 세 번 실행했고, 로그 시간 설명이 틀린 것은 증상만 알려 준 실행 가운데 Sonnet 5.5(high)의 한 회다.
+[^c103-c51]: [이서원, 5.1절 작업에 맞는 모델 고르기](https://oksure.github.io/vibecoding/sections/05-1-model-selection.html), ‘코드 수정: 기준을 통과한 뒤의 차이’.
 
 [^c103-c101]: [이한결, 10.1절 완료 조건과 테스트 설계](https://oksure.github.io/vibecoding/sections/10-1-acceptance-tests.html), ‘에이전트가 테스트를 보고 다음 행동을 고를 때’.
 
-[^c103-syscard]: [Anthropic, Claude 3.7 Sonnet System Card](https://www.anthropic.com/claude-3-7-sonnet-system-card) (게시: 2025-02-24; 6절 "Excessive Focus on Passing Tests"와 6.1절, 22쪽). 원문: "Claude 3.7 Sonnet occasionally resorts to special-casing in order to pass test cases in agentic coding environments like Claude Code", "our automated classifiers successfully detected this pattern in training transcripts".
+[^c103-syscard]: [Anthropic, Claude 3.7 Sonnet System Card](https://www.anthropic.com/claude-3-7-sonnet-system-card) (게시: 2025-02-24; 6절과 6.1절, 22쪽)
 
-[^c103-dapper]: [Sigelman 외, Dapper, a Large-Scale Distributed Systems Tracing Infrastructure](https://research.google.com/archive/papers/dapper-2010-1.pdf) (Google Technical Report dapper-2010-1, 2010년 4월; 2쪽 Figure 1, 3쪽 2.1절과 Figure 2, 7쪽 Table 2). 원문: "monitoring should always be turned on, because it is often the case that unusual or otherwise noteworthy system behavior is difficult or impossible to reproduce." (2쪽)
+[^c103-dapper]: [Sigelman 외, Dapper, a Large-Scale Distributed Systems Tracing Infrastructure](https://research.google.com/archive/papers/dapper-2010-1.pdf) (Google Technical Report dapper-2010-1, 2010년 4월; 2–3쪽, 7쪽 Table 2)
 
-[^c103-otel-signals]: [OpenTelemetry, Signals](https://opentelemetry.io/docs/concepts/signals/) (확인: 2026-11-01)
+[^c103-otel-signals]: [OpenTelemetry, Signals](https://opentelemetry.io/docs/concepts/signals/)
 
-[^c103-bea]: [Anthropic, Building effective agents](https://www.anthropic.com/engineering/building-effective-agents) (게시: 2024-12-19; "What are agents?" 절과 "Agents" 절). 원문: 워크플로는 "systems where LLMs and tools are orchestrated through predefined code paths", 에이전트는 "systems where LLMs dynamically direct their own processes and tool usage, maintaining control over how they accomplish tasks". 도구 결과에 관해서는 "During execution, it's crucial for the agents to gain “ground truth” from the environment at each step (such as tool call results or code execution) to assess its progress."
+[^c103-bea]: [Anthropic, Building effective agents](https://www.anthropic.com/engineering/building-effective-agents) (게시: 2024-12-19; "What are agents?" 절과 "Agents" 절)
 
-[^c103-ouyang]: [Ouyang 외, An Empirical Study of the Non-determinism of ChatGPT in Code Generation](https://doi.org/10.1145/3697010) (ACM TOSEM 34(2), 1–28쪽, 게재: 2025-01-22; [arXiv 판](https://arxiv.org/abs/2308.02828) 3.3절 실험 설정, 4.1절과 4.2절 결과). 데이터셋별 비율은 CodeContests 75.76%, APPS 51.00%, HumanEval 47.56%이고, temperature 0에서는 각각 43.64%, 27.40%, 18.29%다.
+[^c103-ouyang]: [Ouyang 외, An Empirical Study of the Non-determinism of ChatGPT in Code Generation](https://doi.org/10.1145/3697010) (ACM TOSEM 34(2), 1–28쪽, 게재: 2025-01-22; [arXiv 판](https://arxiv.org/abs/2308.02828) 3.3절, 4.1절과 4.2절)
 
 [^c103-turpin]: [Turpin 외, Language Models Don't Always Say What They Think: Unfaithful Explanations in Chain-of-Thought Prompting](https://arxiv.org/abs/2305.04388) (NeurIPS 2023; 초록)
 
 [^c103-loop]: [고영조, 6.2절 루프 엔지니어링이란?](https://oksure.github.io/vibecoding/sections/06-2-loop-engineering.html#sec-loop-engineering), ‘다시 할지 멈출지를 판정하는 규칙’.
 
-[^c103-otel-genai]: [OpenTelemetry, Semantic conventions for generative client AI spans](https://github.com/open-telemetry/semantic-conventions-genai/blob/main/docs/gen-ai/gen-ai-spans.md) (확인: 2026-11-01; 커밋 `244465e`; 상태: Development, 내용 항목은 Opt-In)
+[^c103-otel-genai]: [OpenTelemetry, Gen AI attributes](https://github.com/open-telemetry/semantic-conventions-genai/blob/main/docs/registry/attributes/gen-ai.md), [Semantic conventions for generative client AI spans](https://github.com/open-telemetry/semantic-conventions-genai/blob/main/docs/gen-ai/gen-ai-spans.md)
 
-[^c103-cc-monitoring]: [Anthropic, Monitoring (Claude Code 문서)](https://code.claude.com/docs/en/monitoring-usage) (확인: 2026-11-23; 문서에 버전 표시 없음; "Traces (beta)" 절의 "Span hierarchy"와 "Span attributes"). 원문: "Each user prompt starts a `claude_code.interaction` root span. API calls, tool calls, and hook executions are recorded as its children." 추적은 `CLAUDE_CODE_ENABLE_TELEMETRY`와 `CLAUDE_CODE_ENHANCED_TELEMETRY_BETA`를 함께 켜야 남는다. 내용 기록은 `OTEL_LOG_USER_PROMPTS`, `OTEL_LOG_TOOL_DETAILS`, `OTEL_LOG_TOOL_CONTENT`로 켜며, 파일 경로(`file_path`)와 명령(`full_command`)은 `OTEL_LOG_TOOL_DETAILS`를 켜야 남는다.
+[^c103-cc-monitoring]: [Anthropic, Monitoring (Claude Code 문서)](https://code.claude.com/docs/en/monitoring-usage) ("Traces (beta)" 절)
 
-[^c103-bouzenia]: [Bouzenia, Pradel, Understanding Software Engineering Agents: A Study of Thought-Action-Result Trajectories](https://arxiv.org/abs/2506.18824) (ASE 2025, [DOI](https://doi.org/10.1109/ASE63991.2025.00234); II절 방법, III절 B "RQ2: Actions and Patterns of Actions Sequences"와 Figure 5)
+[^c103-bouzenia]: [Bouzenia, Pradel, Understanding Software Engineering Agents: A Study of Thought-Action-Result Trajectories](https://arxiv.org/abs/2506.18824) (ASE 2025; II절, III절 B와 Figure 5)
 
-[^c103-zhang]: [Zhang 외, Which Agent Causes Task Failures and When? On Automated Failure Attribution of LLM Multi-Agent Systems](https://arxiv.org/abs/2505.00212) (ICML 2025, PMLR 267)
-
-[^c103-click]: [Iain-S, Echoing Empty Bytes or Bytearray Raises TypeError](https://github.com/pallets/click/issues/3487) (2026-05-20), [Pallets, Handle Empty Bytes in Echo](https://github.com/pallets/click/pull/3493) (2026-05-21). 실행: 2026-11-23(한국 시각 23:50), 모델 `claude-sonnet-5-5`, Claude Code 2.1.330, Ubuntu 22.04.5, Python 3.13.12, pytest 9.2.0, Click 8.4.1.dev(수정 직전 `d42f15b`, 공식 병합본 `a5f5aa6`). 세 실행 모두 같은 이슈 본문을 받았고, 허용한 도구는 파일 읽기, 검색, 편집과 `python`, `pytest`, 일부 `git` 명령이다. 웹 검색과 웹 페이지 읽기는 막았고, 저장소 이력에는 공식 수정 커밋이 들어 있지 않게 했다. 채점은 에이전트가 건드릴 수 없는 별도 사본에서 했다. 10.1절의 검사 12건은 수정 전 코드에서 4건이 실패했다. 수정 전에 있던 전체 테스트(오래 걸리는 부하 테스트 제외)에서는 수정 전 코드, 공식 수정본, 세 실행 모두 같은 2건이 실패했다. 세 실행은 도구를 7번, 11번, 16번 불렀고, 24–43초가 걸렸으며, Claude Code가 계산한 비용은 0.08–0.12달러였다. [이홍창, Click #3487 실행 기록과 스크립트](https://github.com/hanliger/vibecoding/tree/b0a7feaad809fea3b173378a10714af5f2896069/ko/examples/10-3-click-3487)
+[^c103-click]: [Iain-S, Echoing Empty Bytes or Bytearray Raises TypeError](https://github.com/pallets/click/issues/3487) (2026-05-20), [Pallets, Handle Empty Bytes in Echo](https://github.com/pallets/click/pull/3493) (2026-05-21). 실행: 2026-11-23, `claude-sonnet-5-5`, Claude Code 2.1.330, Ubuntu 22.04.5, Python 3.13.12, pytest 9.2.0, Click 수정 직전 커밋 `d42f15b`. 실행 조건과 채점 결과: [이홍창, Click #3487 실행 기록과 스크립트](https://github.com/hanliger/vibecoding/tree/b0a7feaad809fea3b173378a10714af5f2896069/ko/examples/10-3-click-3487)
 
 [^c103-next]: [10.2절 에이전트와 함께 디버깅하기](https://oksure.github.io/vibecoding/sections/10-2-debugging-with-agents.html), [10.4절 벤치마크 점수와 현장 성능 사이](https://oksure.github.io/vibecoding/sections/10-4-benchmarks-and-evals.html).
