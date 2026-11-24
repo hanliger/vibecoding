@@ -1,0 +1,71 @@
+diff --git a/CHANGES.rst b/CHANGES.rst
+index eb32cd8..d9747f8 100644
+--- a/CHANGES.rst
++++ b/CHANGES.rst
+@@ -10,6 +10,9 @@ Unreleased
+ -   Zsh completion scripts parse correctly on Windows. :issue:`3277`
+ -   Shell completion of `Choice` `Enum` values produces a valid completion
+     result. :issue:`3015`
++-   ``echo`` no longer raises ``TypeError`` when given empty ``bytes`` or
++    ``bytearray`` with ``nl=True``, and no longer modifies a ``bytearray``
++    argument in place.
+ 
+ Version 8.4.0
+ -------------
+diff --git a/src/click/utils.py b/src/click/utils.py
+index 223d6b8..90fc68e 100644
+--- a/src/click/utils.py
++++ b/src/click/utils.py
+@@ -294,11 +294,13 @@ def echo(
+         out = message
+ 
+     if nl:
+-        out = out or ""
++        if out is None:
++            out = ""
+         if isinstance(out, str):
+-            out += "\n"
++            out = out + "\n"
+         else:
+-            out += b"\n"
++            # Not ``+=``: that would mutate a caller's bytearray in place.
++            out = out + b"\n"
+ 
+     if not out:
+         file.flush()
+diff --git a/tests/test_utils.py b/tests/test_utils.py
+index a16493b..b15bc07 100644
+--- a/tests/test_utils.py
++++ b/tests/test_utils.py
+@@ -8,6 +8,7 @@ from contextlib import nullcontext
+ from decimal import Decimal
+ from fractions import Fraction
+ from functools import partial
++from io import BytesIO
+ from io import StringIO
+ from unittest.mock import patch
+ 
+@@ -92,6 +93,23 @@ def test_echo(runner):
+         assert outstreams[0].getvalue() == b"\x1b[31mx\x1b[39m"
+ 
+ 
++@pytest.mark.parametrize("empty", [b"", bytearray()])
++def test_echo_empty_bytes_with_newline(empty):
++    f = BytesIO()
++    click.echo(empty, f, nl=True)
++    assert f.getvalue() == b"\n"
++
++    f = BytesIO()
++    click.echo(empty, f, nl=False)
++    assert f.getvalue() == b""
++
++
++def test_echo_bytearray_not_mutated():
++    data = bytearray(b"abc")
++    click.echo(data, BytesIO())
++    assert data == bytearray(b"abc")
++
++
+ def test_echo_custom_file():
+     f = StringIO()
+     click.echo("hello", file=f)

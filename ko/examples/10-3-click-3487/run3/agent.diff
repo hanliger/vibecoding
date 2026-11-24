@@ -1,0 +1,63 @@
+diff --git a/CHANGES.rst b/CHANGES.rst
+index eb32cd8..8f3a19d 100644
+--- a/CHANGES.rst
++++ b/CHANGES.rst
+@@ -10,6 +10,8 @@ Unreleased
+ -   Zsh completion scripts parse correctly on Windows. :issue:`3277`
+ -   Shell completion of `Choice` `Enum` values produces a valid completion
+     result. :issue:`3015`
++-   ``echo`` of empty ``bytes`` or ``bytearray`` with ``nl=True`` writes a
++    newline instead of raising ``TypeError``.
+ 
+ Version 8.4.0
+ -------------
+diff --git a/src/click/utils.py b/src/click/utils.py
+index 223d6b8..67cc357 100644
+--- a/src/click/utils.py
++++ b/src/click/utils.py
+@@ -294,11 +294,12 @@ def echo(
+         out = message
+ 
+     if nl:
+-        out = out or ""
++        out = "" if out is None else out
++        # Don't use ``+=``, it would mutate a caller's bytearray in place.
+         if isinstance(out, str):
+-            out += "\n"
++            out = out + "\n"
+         else:
+-            out += b"\n"
++            out = out + b"\n"
+ 
+     if not out:
+         file.flush()
+diff --git a/tests/test_utils.py b/tests/test_utils.py
+index a16493b..37b6cf9 100644
+--- a/tests/test_utils.py
++++ b/tests/test_utils.py
+@@ -8,6 +8,7 @@ from contextlib import nullcontext
+ from decimal import Decimal
+ from fractions import Fraction
+ from functools import partial
++from io import BytesIO
+ from io import StringIO
+ from unittest.mock import patch
+ 
+@@ -98,6 +99,17 @@ def test_echo_custom_file():
+     assert f.getvalue() == "hello\n"
+ 
+ 
++@pytest.mark.parametrize("empty", [b"", bytearray()])
++def test_echo_empty_bytes_nl(empty):
++    f = BytesIO()
++    click.echo(empty, file=f, nl=True)
++    assert f.getvalue() == b"\n"
++
++    f = BytesIO()
++    click.echo(empty, file=f, nl=False)
++    assert f.getvalue() == b""
++
++
+ def test_echo_no_streams(monkeypatch, runner):
+     """echo should not fail when stdout and stderr are None with pythonw on Windows."""
+     with runner.isolation():
