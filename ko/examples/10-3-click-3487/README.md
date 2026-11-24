@@ -5,6 +5,7 @@
 - 실행: 2026-11-23 23:50(한국 시각). Claude Code 2.1.330, 모델 `claude-sonnet-5-5`, Ubuntu 22.04.5, Python 3.13.12, pytest 9.2.0.
 - 출발점: pallets/click `d42f15b`(공식 수정 `a5f5aa6` 직전). 에이전트가 받은 저장소 이력에는 공식 수정 커밋을 넣지 않았다.
 - 같은 `prompt.txt`(이슈 본문 포함)로 세 번 실행했다. 웹 검색과 웹 페이지 읽기는 막았다.
+- 에이전트가 쓸 수 있는 도구는 `scripts/run_agent.sh`의 `--allowedTools`로 정했다. 파일 읽기와 편집, `python`, `pytest`, `git diff`, `git status`, `git log`, `git show`다. 목록에 없는 `git stash`, `sed -i` 같은 명령은 승인이 필요해 실행되지 않았고, `행동순서.txt`에 `ERR`로 남았다.
 - 채점은 에이전트가 건드릴 수 없는 별도 사본의 테스트로 했다. 10.1절의 검사 12건은 [ko/examples/10-1-click-3487](../10-1-click-3487)에 있다.
 
 ## 파일
