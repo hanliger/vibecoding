@@ -1,0 +1,110 @@
+[
+  {
+    "case": "str-empty",
+    "nl": false,
+    "output": "''",
+    "error": null
+  },
+  {
+    "case": "str-empty",
+    "nl": true,
+    "output": "'\\n'",
+    "error": null
+  },
+  {
+    "case": "str-value",
+    "nl": false,
+    "output": "'A'",
+    "error": null
+  },
+  {
+    "case": "str-value",
+    "nl": true,
+    "output": "'A\\n'",
+    "error": null
+  },
+  {
+    "case": "bytes-empty",
+    "nl": false,
+    "output": "b''",
+    "error": null
+  },
+  {
+    "case": "bytes-empty",
+    "nl": true,
+    "output": "b''",
+    "error": "TypeError: a bytes-like object is required, not 'str'"
+  },
+  {
+    "case": "bytes-value",
+    "nl": false,
+    "output": "b'A'",
+    "error": null
+  },
+  {
+    "case": "bytes-value",
+    "nl": true,
+    "output": "b'A\\n'",
+    "error": null
+  },
+  {
+    "case": "bytearray-empty",
+    "nl": false,
+    "output": "b''",
+    "error": null
+  },
+  {
+    "case": "bytearray-empty",
+    "nl": true,
+    "output": "b''",
+    "error": "TypeError: a bytes-like object is required, not 'str'"
+  },
+  {
+    "case": "bytearray-value",
+    "nl": false,
+    "output": "b'A'",
+    "error": null
+  },
+  {
+    "case": "bytearray-value",
+    "nl": true,
+    "output": "b'A\\n'",
+    "error": null
+  },
+  {
+    "case": "none",
+    "nl": false,
+    "output": "''",
+    "error": null
+  },
+  {
+    "case": "none",
+    "nl": true,
+    "output": "'\\n'",
+    "error": null
+  },
+  {
+    "case": "zero",
+    "nl": false,
+    "output": "'0'",
+    "error": null
+  },
+  {
+    "case": "zero",
+    "nl": true,
+    "output": "'0\\n'",
+    "error": null
+  },
+  {
+    "case": "false",
+    "nl": false,
+    "output": "'False'",
+    "error": null
+  },
+  {
+    "case": "false",
+    "nl": true,
+    "output": "'False\\n'",
+    "error": null
+  }
+]

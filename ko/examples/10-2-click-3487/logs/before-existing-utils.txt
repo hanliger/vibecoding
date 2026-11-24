@@ -1,0 +1,11 @@
+...........................................sssss.sssssssssssssssssssssss [ 48%]
+sssssssssssssssssssssssssssssssssssss..s.......sssss.................... [ 97%]
+...                                                                      [100%]
+=========================== short test summary info ===========================
+SKIPPED [1] tests\test_utils.py:216: Different behavior on windows.
+SKIPPED [4] tests\test_utils.py:233: Different behavior on windows.
+SKIPPED [60] tests\test_utils.py:312: Different behavior on windows.
+SKIPPED [1] tests\test_utils.py:495: Test too complex to make work windows.
+SKIPPED [4] tests\test_utils.py:661: os.chmod() is not fully supported on Windows.
+SKIPPED [1] tests\test_utils.py:679: os.stat() is not fully supported on Windows.
+76 passed, 71 skipped in 0.19s
