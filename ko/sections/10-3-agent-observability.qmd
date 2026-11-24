@@ -21,7 +21,7 @@
 
 Dapper 논문은 사용자 요청 하나가 앞단 서버에서 중간 서버들을 거쳐 뒷단 서버들로 퍼져 나가는 예를 든다. Dapper는 이 과정을 구간(span)이라는 단위로 나눠 기록한다. 구간마다 이름, 시작 시각과 끝 시각, 자기 번호, 자기를 부른 구간의 번호를 남긴다. 나중에 이 번호를 따라 구간들을 이어 붙이면 요청 하나가 지나간 길이 나무 모양으로 다시 그려진다(@fig-dapper-trace). 10.1절의 매표소 프로그램에 빗대면, 주문 하나가 요금 계산, 결제, 발권을 거치는 동안 각 단계에 들어가고 나온 시각을 같은 주문 번호 아래 적어 두는 셈이다.
 
-![요청 하나가 서버를 거쳐 가는 길(가)과 그 길을 구간으로 기록한 모습(나). Dapper 논문의 그림 1과 그림 2를 바탕으로 다시 그렸다.[^c103-dapper]](/images/10-3-dapper-trace.svg){#fig-dapper-trace fig-alt="위쪽: 사용자의 요청이 앞단 서버 A로 들어가고, A가 중간 서버 B와 C를, C가 뒷단 서버 D와 E를 호출한다. 응답은 같은 길을 거꾸로 돌아온다. 아래쪽: 같은 요청을 다섯 구간으로 기록했다. 구간 1은 A가 받은 요청이고, 구간 2와 3은 구간 1이 부른 A에서 B, A에서 C로의 호출, 구간 4와 5는 구간 3이 부른 C에서 D, C에서 E로의 호출이다. 각 구간은 시작과 끝 시각을 가진 막대로 그려져 있다."}
+![요청 하나가 서버를 거쳐 가는 길(가)과 그 길을 구간으로 기록한 모습(나). Dapper 논문의 그림 1과 그림 2를 바탕으로 다시 그렸다.](/images/10-3-dapper-trace.svg){#fig-dapper-trace fig-alt="위쪽: 사용자의 요청이 앞단 서버 A로 들어가고, A가 중간 서버 B와 C를, C가 뒷단 서버 D와 E를 호출한다. 응답은 같은 길을 거꾸로 돌아온다. 아래쪽: 같은 요청을 다섯 구간으로 기록했다. 구간 1은 A가 받은 요청이고, 구간 2와 3은 구간 1이 부른 A에서 B, A에서 C로의 호출, 구간 4와 5는 구간 3이 부른 C에서 D, C에서 E로의 호출이다. 각 구간은 시작과 끝 시각을 가진 막대로 그려져 있다."}
 
 Dapper는 이 기록을 항상 켜 둔다. 드물게 일어나는 이상한 동작은 나중에 다시 일으키기 어렵거나 아예 불가능한 경우가 많기 때문이다. 다시 돌려서는 문제를 재현하기 어렵다는 고민은 에이전트가 나오기 전부터 있었던 셈이다. 다만 모든 요청을 기록하지는 않고 일부만 골라 남긴다. 요청이 아주 많은 서비스에서는 1,024개 중 1개만 남겨도 분석에 충분했다.
 
@@ -106,17 +106,6 @@ Claude Code도 OpenTelemetry 형식으로 기록을 내보낼 수 있다. 사용
 
 정리하면, 에이전트의 작업을 검증하려면 결과만이 아니라 에이전트가 무엇을 지시받고, 무엇을 보고, 무엇을 했는지를 실행하는 동안 기록해 두어야 한다. 이슈 하나를 세 번 고친 기록을 읽는 데에도 이만큼의 품이 든다. 10.4절에서 다룰 벤치마크는 이런 실행 수백 개를 점수 하나로 줄인다. 그 점수가 무엇을 통과로 쳤는지 묻는 일은, 이 절에서 기록을 읽으며 던진 질문과 같다.[^c103-next]
 
-::: {.callout-note collapse="true"}
-## 집필 메모 (제출 전 해결)
-- [저자 확인 필요] Click 실습 파일(이슈 본문, 실행 스크립트, 채점 스크립트, 실행 기록 요약)을 `ko/examples/10-3-click-3487/`에 올리고 `c103-click` 각주에 커밋 고정 링크를 단다. 원본 기록 파일에는 로컬 경로가 들어 있으니 요약본만 올릴지 정한다.
-- [저자 확인 필요] 10.1절이 아직 병합 전이다. 10.1절 링크와 인용한 문장(기대값을 바꾼 테스트, 매표소 1,000원 테스트, 실습 각주)이 최종본과 맞는지 병합 뒤 다시 확인한다.
-- [저자 확인 필요] 3.5절(한유종), 4.2절(김현기), 5.1절(이서원)에서 가져온 내용은 2026-11-24 `main`(커밋 `3e763f6`) 기준이다. 제출 전에 문장과 수치가 바뀌지 않았는지 다시 확인하고, 필요하면 담당자에게 알린다.
-- [저자 확인 필요] §10.2 담당자와 경계를 맞춘다. §10.2는 코드의 버그를, 10.3은 에이전트의 작업 과정을 되짚는다.
-- [저자 확인 필요] 역사 부분을 10.1절처럼 앞으로 늘릴지 정한다. 후보: 10.1절이 인용한 Gill(1951)의 EDSAC 점검 프로그램 가운데 실행되는 명령을 하나씩 출력하는 추적용 프로그램이 있는지 원문 확인.
-- [저자 확인 필요] Dapper 그림(`ko/images/10-3-dapper-trace.svg`)의 (나)는 Dapper 그림 2의 구간 다섯 개와 시각을 따랐지만, 구간 이름(원문은 Frontend.Request, Backend.Call 등)은 (가)의 서버와 맞춰 바꿨다. 원문 그림 1과 2가 같은 요청이라고 논문이 밝히지는 않았으므로, 캡션의 ‘바탕으로 다시 그렸다’ 표현이 괜찮은지 확인한다.
-- [저자 확인 필요] 비교 표의 각 칸이 본문의 근거로 뒷받침되는지 마지막에 대조한다.
-:::
-
 [^c103-c35]: [한유종, 3.5절 AI 코딩 도구의 유형과 선택](https://oksure.github.io/vibecoding/sections/03-5-coding-tool-landscape.html), ‘검토 가능성: 무엇을 돌려받아야 끝났다고 판단할 수 있는가’.
 
 [^c103-c42]: [김현기, 4.2절 데이터 분석을 빠르고 재현 가능하게](https://oksure.github.io/vibecoding/sections/04-2-data-analysis-workflow.html), ‘재현을 설계에 넣은 분석 도구: data-to-paper’.
@@ -147,6 +136,6 @@ Claude Code도 OpenTelemetry 형식으로 기록을 내보낼 수 있다. 사용
 
 [^c103-zhang]: [Zhang 외, Which Agent Causes Task Failures and When? On Automated Failure Attribution of LLM Multi-Agent Systems](https://arxiv.org/abs/2505.00212) (ICML 2025, PMLR 267)
 
-[^c103-click]: [Iain-S, Echoing Empty Bytes or Bytearray Raises TypeError](https://github.com/pallets/click/issues/3487) (2026-05-20), [Pallets, Handle Empty Bytes in Echo](https://github.com/pallets/click/pull/3493) (2026-05-21). 실행: 2026-11-23(한국 시각 23:50), 모델 `claude-sonnet-5-5`, Claude Code 2.1.330, Ubuntu 22.04.5, Python 3.13.12, pytest 9.2.0, Click 8.4.1.dev(수정 직전 `d42f15b`, 공식 병합본 `a5f5aa6`). 세 실행 모두 같은 이슈 본문을 받았고, 허용한 도구는 파일 읽기, 검색, 편집과 `python`, `pytest`, 일부 `git` 명령이다. 웹 검색과 웹 페이지 읽기는 막았고, 저장소 이력에는 공식 수정 커밋이 들어 있지 않게 했다. 채점은 에이전트가 건드릴 수 없는 별도 사본에서 했다. 10.1절의 검사 12건은 수정 전 코드에서 4건이 실패했다. 수정 전에 있던 전체 테스트(오래 걸리는 부하 테스트 제외)에서는 수정 전 코드, 공식 수정본, 세 실행 모두 같은 2건이 실패했다. 세 실행은 도구를 7번, 11번, 16번 불렀고, 24–43초가 걸렸으며, Claude Code가 계산한 비용은 0.08–0.12달러였다.
+[^c103-click]: [Iain-S, Echoing Empty Bytes or Bytearray Raises TypeError](https://github.com/pallets/click/issues/3487) (2026-05-20), [Pallets, Handle Empty Bytes in Echo](https://github.com/pallets/click/pull/3493) (2026-05-21). 실행: 2026-11-23(한국 시각 23:50), 모델 `claude-sonnet-5-5`, Claude Code 2.1.330, Ubuntu 22.04.5, Python 3.13.12, pytest 9.2.0, Click 8.4.1.dev(수정 직전 `d42f15b`, 공식 병합본 `a5f5aa6`). 세 실행 모두 같은 이슈 본문을 받았고, 허용한 도구는 파일 읽기, 검색, 편집과 `python`, `pytest`, 일부 `git` 명령이다. 웹 검색과 웹 페이지 읽기는 막았고, 저장소 이력에는 공식 수정 커밋이 들어 있지 않게 했다. 채점은 에이전트가 건드릴 수 없는 별도 사본에서 했다. 10.1절의 검사 12건은 수정 전 코드에서 4건이 실패했다. 수정 전에 있던 전체 테스트(오래 걸리는 부하 테스트 제외)에서는 수정 전 코드, 공식 수정본, 세 실행 모두 같은 2건이 실패했다. 세 실행은 도구를 7번, 11번, 16번 불렀고, 24–43초가 걸렸으며, Claude Code가 계산한 비용은 0.08–0.12달러였다. [이홍창, Click #3487 실행 기록과 스크립트](https://github.com/hanliger/vibecoding/tree/b0a7feaad809fea3b173378a10714af5f2896069/ko/examples/10-3-click-3487)
 
 [^c103-next]: [10.2절 에이전트와 함께 디버깅하기](https://oksure.github.io/vibecoding/sections/10-2-debugging-with-agents.html), [10.4절 벤치마크 점수와 현장 성능 사이](https://oksure.github.io/vibecoding/sections/10-4-benchmarks-and-evals.html).
