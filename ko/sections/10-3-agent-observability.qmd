@@ -82,6 +82,14 @@ Claude Code도 OpenTelemetry 형식으로 기록을 내보낼 수 있다. 사용
 
 실패한 기록에서는 다른 행동 없이 수정안 만들기와 테스트 실행만 되풀이하는 순서가 자주 보였다. 저자들은 비효율적인 패턴으로 세 가지를 들었다. 같은 행동을 되풀이하면서 그 결과를 다음 행동에 반영하지 않는 것, 테스트 없이 수정안만 연달아 만드는 것, 테스트로 제대로 확인하지 않고 작업을 끝내는 것이다. 기록을 읽을 때 이런 패턴부터 찾으면 판단이 틀어진 곳을 빨리 좁힐 수 있다.
 
+기록을 그래프로 그려서 읽는 방법도 나왔다. Liu 등이 제안한 Graphectory는 에이전트의 행동 하나를 점 하나로 그린다. 같은 행동을 다시 하면 새 점을 만들지 않고 앞의 점으로 돌아간다. 점 사이에는 두 종류의 선을 긋는다. 하나는 행동한 순서를 따라 잇는 선이고, 다른 하나는 디렉터리에서 파일로, 파일에서 코드 블록으로 좁혀 들어간 관계를 잇는 선이다. 점마다 그 행동이 버그 위치 찾기, 수정, 검증 가운데 어느 단계였는지도 색으로 표시한다. 이렇게 그리면 앞에서 말한 되풀이가 앞의 점으로 되돌아가는 선과 고리로 드러난다.[^c103-graphectory]
+
+저자들은 두 에이전트(SWE-agent, OpenHands)가 네 모델로 SWE-bench Verified의 이슈를 푼 기록 4,000개를 이렇게 그려 비교했다. 해결하지 못한 실행은 해결한 실행보다 그래프가 크고 되돌아가는 선이 많았다. 해결한 실행은 거의 모두 검증 단계로 끝났지만, 해결하지 못한 실행은 위치 찾기나 수정 단계에서 끝나는 경우가 많았다. 해결한 실행에서도 쓸데없이 길어진 과정이 자주 보였다. 저자들은 실행 도중에 그래프를 그려 이런 문제가 보이면 에이전트에게 알리고, 필요하면 직전 행동을 되돌리는 방법도 시험했다. 문제가 있던 사례에서 해결률이 모델에 따라 6.9–23.5% 올랐다. 그래프를 웹 화면에서 살펴보는 도구도 공개되어 있고, Claude Code와 Codex의 실행 기록도 읽을 수 있다고 밝히고 있다.[^c103-graphectory-viewer]
+
+논문의 예를 보자(@fig-graphectory-example). SWE-agent에 서로 다른 모델을 붙여 Django의 같은 이슈를 고치게 한 두 기록이다. 결과만 보면 둘 다 이슈를 고쳤고 패치도 거의 같았다. 그러나 그래프의 모양은 다르다. (a)는 파일 하나를 여러 번에 나눠 고치다가 실패한 수정을 되풀이했고, 그래서 되돌아가는 선(9, 10)이 생겼다. (b)는 디렉터리를 들어갔다 나왔다 다시 들어가며 고칠 파일을 찾았고, 한 번에 고친 뒤 아무것도 실행해 보지 않고 제출했다. 그래프에 초록색 검증 단계가 하나도 없다. 결과만으로는 가려지는 이런 차이가 그래프에서는 선의 모양과 색으로 드러난다.
+
+![Graphectory로 그린 두 실행 기록. SWE-agent에 Devstral-Small(a)과 DeepSeek-V3(b)를 붙여 Django 이슈 django-10973을 고친 기록이다. 보라색은 위치 찾기, 노란색은 수정, 초록색은 검증 단계다. 검은 선과 숫자는 행동한 순서이고, 초록 점선은 디렉터리에서 파일로 좁혀 들어간 관계다. 출처: [Liu 외, Process-Centric Analysis of Agentic Software Systems](https://arxiv.org/abs/2512.02393) Figure 2, [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)](/images/10-3-graphectory-example.png){#fig-graphectory-example fig-alt="두 에이전트 실행을 그래프로 나란히 그린 그림. 왼쪽 (a)는 디렉터리에서 client.py 파일까지 차례로 들어간 뒤 테스트 파일을 만들고, 같은 파일을 네 번 고치다 마지막 수정이 실패해 제자리로 돌아가는 선과 앞의 파일 보기로 되돌아가는 선이 생긴다. 그 뒤 다른 곳을 고치고 테스트를 실행한 다음 제출한다. 오른쪽 (b)는 디렉터리를 들어갔다 나왔다 다시 들어가 client.py를 찾고, 한 번 고친 뒤 검증 없이 제출한다. 그림 아래에는 단계 순서를 줄인 문자열 L5P5LPV와 L6P가 적혀 있다."}
+
 ::: {.callout-note title="Click #3487을 세 번 맡기고 기록을 읽어 보기"}
 파이썬 명령줄 도구 Click의 이슈 #3487을 Claude Code에 세 번 맡겼다. `click.echo()`로 빈 바이트열 `b""`를 쓰면서 줄바꿈을 요청하면 `b"\n"`이 남아야 하는데, 오류가 나는 문제다. 10.1절은 같은 이슈로 기대값을 적고 검사 12건을 만들었는데, 이 실습에서는 그 검사로 에이전트의 결과를 채점했다. 세 번 모두 같은 이슈 본문을 주고 공식 수정 직전 커밋에서 시작했다. 웹 검색은 막았고, 에이전트가 쓸 수 있는 도구는 파일 읽기와 편집, `python`, `pytest`, 읽기만 하는 git 명령으로 정해 두었다. 기록은 Claude Code가 내보내는 OpenTelemetry 추적 기록과, 대화와 도구 호출을 순서대로 적은 실행 기록 두 가지로 남겼다.[^c103-click]
 
@@ -146,6 +154,10 @@ Claude Code도 OpenTelemetry 형식으로 기록을 내보낼 수 있다. 사용
 [^c103-cc-monitoring]: [Anthropic, Monitoring (Claude Code 문서)](https://code.claude.com/docs/en/monitoring-usage) ("Traces (beta)" 절)
 
 [^c103-bouzenia]: [Bouzenia, Pradel, Understanding Software Engineering Agents: A Study of Thought-Action-Result Trajectories](https://arxiv.org/abs/2506.18824) (ASE 2025; II절, III절 B와 Figure 5)
+
+[^c103-graphectory]: [Liu 외, Process-Centric Analysis of Agentic Software Systems](https://doi.org/10.1145/3798271) (Proc. ACM Program. Lang. 10(OOPSLA1), 2026; [arXiv 판](https://arxiv.org/abs/2512.02393) 초록, 2.1절, 3.2.3절, 3.3.1절)
+
+[^c103-graphectory-viewer]: [Jyu 외, Graphectory Viewer: A Tool for Process-Centric Analysis of Agentic Software Trajectories](https://arxiv.org/abs/2608.17195) (ASE 2026 Tool Track), [Graphectory 저장소](https://github.com/Intelligent-CAT-Lab/Graphectory) (확인: 2026-11-27)
 
 [^c103-click]: [Iain-S, Echoing Empty Bytes or Bytearray Raises TypeError](https://github.com/pallets/click/issues/3487) (2026-05-20), [Pallets, Handle Empty Bytes in Echo](https://github.com/pallets/click/pull/3493) (2026-05-21). 실행: 2026-11-23, `claude-sonnet-5-5`, Claude Code 2.1.330, Ubuntu 22.04.5, Python 3.13.12, pytest 9.2.0, Click 수정 직전 커밋 `d42f15b`. 실행 조건과 채점 결과: [이홍창, Click #3487 실행 기록과 스크립트](https://github.com/hanliger/vibecoding/tree/b0a7feaad809fea3b173378a10714af5f2896069/ko/examples/10-3-click-3487)
 
