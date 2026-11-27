@@ -18,7 +18,7 @@
     const escape = text => text.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
     const selector = "p,h1,h2,h3,h4,h5,h6,td,th,figcaption,dt,dd,li";
     const blocks = [...document.querySelectorAll(selector)].filter(node =>
-      !node.closest(excluded) && !node.querySelector(selector + ",pre.text") && korean(node.textContent));
+      !node.closest(excluded) && !node.querySelector(selector + ",pre.text,pre.vc-prose") && korean(node.textContent));
     const owners = new Set(blocks);
     function pack(node) {
       const templates = [];
@@ -35,7 +35,7 @@
     const units = blocks.map(node => ({node, kind:"block", ...pack(node)}));
     // Plain-text prompt/specification examples are prose. Executable code
     // remains protected by the exclusions above.
-    for (const node of document.querySelectorAll("pre.text > code")) {
+    for (const node of document.querySelectorAll("pre.text > code,pre.vc-prose > code")) {
       if (korean(node.textContent) && !node.closest('.notranslate,[translate="no"]')) {
         units.push({node,kind:"block",source:escape(node.textContent).trim(),templates:[]});
       }
@@ -76,6 +76,13 @@
       if (stack.length !== 1 || seen.size !== unit.templates.length) throw new Error("Missing translation marker");
       return [...root.childNodes];
     }
+    // A newly renamed sidebar item must not disable an already translated
+    // article. Unknown surrounding labels retain their original text.
+    const main = document.querySelector("main");
+    for (const unit of units) {
+      const element = unit.kind === "text" ? unit.node.parentElement : unit.node;
+      unit.required = !main || !!element.closest("main");
+    }
     return {units, render};
   }
   // END SHARED TRANSLATION DOM
@@ -111,6 +118,7 @@
     try {
       for (const unit of dom.units) {
         const translated = Object.hasOwn(data.translations, unit.source) ? data.translations[unit.source] : null;
+        if (translated === null && unit.required === false) continue;
         if (typeof translated !== "string" || !translated.trim()) throw new Error("Missing translation");
         if (unit.kind === "block") {
           originals.push({...unit, original:[...unit.node.childNodes], english:dom.render(unit, translated)});
