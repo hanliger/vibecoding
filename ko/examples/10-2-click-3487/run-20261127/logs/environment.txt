@@ -1,0 +1,4 @@
+3.14.5 (main, May 10 2026, 20:29:46) [MSC v.1944 64 bit (AMD64)]
+Windows-11-10.0.26200-SP0
+click source C:\Users\USER\.codex\.chatgpt-projects\g-p-6aacd110aa2081c2ab46da02fcf23603\research\presentation-102-agent-centered\experiment\click\src\click\__init__.py
+pytest 9.2.0

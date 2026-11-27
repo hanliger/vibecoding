@@ -1,0 +1,22 @@
+{
+  "capture_date_kst": "2026-11-25",
+  "tool": "Python IDLE 3.12.10",
+  "python": "3.12.10",
+  "platform": "Windows 11",
+  "source_commit": "d42f15b71757de791a5781fb179fd972da9169f5",
+  "source_file": "src/click/utils.py",
+  "source_sha256_lf": "9614d1416c137d5e472349d6ff974a9d6572c966036385bb9ef024d0bdf27f6b",
+  "source_integrity": "Equal to committed source after CRLF-to-LF normalization.",
+  "reproduction_script_sha256": "263f929a0f9d7692740753f92c097b6ed996687ded302d4ed494585015ebf32b",
+  "screenshots": {
+    "idle-before.jpg": {
+      "sha256": "daafb1e1df6ab707769dd52fa9ba2ee08f2f3431dee17536f9a9e22ddbe57fb1",
+      "state": "Paused before line 297, out displayed as empty bytes"
+    },
+    "idle-after.jpg": {
+      "sha256": "201966066a0de197c47a5a5645bee151e97553e1ed9ecb3b0165df077f413a5f",
+      "state": "After Over, paused at line 298, out displayed as empty str"
+    }
+  },
+  "distinction": "These images were captured separately from the 2026-11-24 CPython 3.14.5 test run; no test counts were updated."
+}
